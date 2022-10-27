@@ -19,7 +19,7 @@ namespace musicsort
                                             PlaylistExtensions = new List<string>() { ".m3u8" };
         public static readonly List<string> IgnoreFolders = new()
         {
-            //BasePath + Files,
+            // BasePath + Files,
             BasePath + Unsorted,
             BasePath + Playlists,
             BasePath + foobar2000

@@ -8,15 +8,21 @@ namespace musicsort
 {    
     static class Program
     {
-        
+        public static bool DryRun { get; private set; } = true;
         public static Dictionary<string, string> newFileNames = new();        
         static void Main()
         {
             Utils.OpenLog();
-            MoveSongsIn(Constants.BasePath);    
-            UpdatePlaylists();
-            Utils.DeleteEmptyFolders();
-            Utils.CloseLog();
+            try
+            {
+                MoveSongsIn(Constants.BasePath);
+                UpdatePlaylists();
+                Utils.DeleteEmptyFolders();
+            } 
+            finally
+            {
+                Utils.CloseLog();
+            }           
         }
         public static void MoveSongsIn(string folder)
         {            
@@ -24,17 +30,16 @@ namespace musicsort
             {
                 if (Utils.ShouldIgnore(file))
                 {
-                    Utils.WriteLine($"@ IGNORE: {file}");
+                    // Utils.WriteLine($"@ IGNORE: {file}");
                     continue;
                 }
                 if (Constants.ExtensionsToDelete.Contains(Path.GetExtension(file)))
                 {
                     Utils.WriteLine($"! DELETE: {file}");
-                    //System.IO.File.Delete(file);
+                    if(!DryRun) System.IO.File.Delete(file);
                     continue;
                 }
-                Utils.WriteLine($">  MOVE : {file}");
-                // MoveSong(file);
+                MoveSong(file);
             }
         }
         /// <summary>
@@ -44,8 +49,6 @@ namespace musicsort
         /// <param name="oldPath"></param>
         static void MoveSong(string oldPath)
         {
-            // load file at path
-            Utils.WriteLine($"Moving {oldPath}...");
             TagLib.File file;
             try
             {
@@ -53,27 +56,22 @@ namespace musicsort
             }
             catch (Exception e)
             {
-                oldPath.MoveToUnsorted();
-                Utils.WriteLine(e);
+                if(!DryRun) oldPath.MoveToUnsorted();
+                Utils.WriteLine($"!!  ERR : Caught exception {e.Message} while attempting to move {oldPath}. Moving to unsorted...");
                 return;
             }
-            string newPath = NewPath(file.Tag, oldPath); 
-            if (newPath == oldPath) return;
-            Utils.WriteLine(newPath);            
-            // attempt to move to that path
-            if(System.IO.File.Exists(newPath))
-            {
-                Utils.WriteLine($"Copy from {oldPath} to {newPath} failed (file already exists).");
-                oldPath.MoveToUnsorted();
-                return;
-            }
+            string newPath = NewPath(file.Tag, oldPath);
+            // file system is case-insensitive on Windows
+            if (newPath.ToLower() == oldPath.ToLower()) return;
+            if(System.IO.File.Exists(newPath)) return;
             try
             {
-                oldPath.MoveTo(newPath);
+                Utils.WriteLine($">  MOVE : {oldPath}\n        ↪ {newPath}");
+                if (!DryRun) oldPath.MoveTo(newPath);
             }
             catch(Exception e)
             {
-                Utils.WriteLine($"Copy from {oldPath} to {newPath} failed ({e.Message}).");
+                Utils.WriteLine($"!!  ERR : Copy from {oldPath} to {newPath} failed ({e.Message}).");
                 return;
             }
             newFileNames[oldPath] = newPath;

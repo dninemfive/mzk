@@ -12,10 +12,13 @@ namespace musicsort
         static StreamWriter LogFile { get; set; } = null;
         public static void OpenLog()
         {
+            File.WriteAllText("mzk.log", "");
             LogFile = File.AppendText("mzk.log");
+            WriteLine("Begin log.");
         }
         public static void CloseLog()
         {
+            WriteLine("End log.");
             LogFile.Flush();
             LogFile.Close();
         }
