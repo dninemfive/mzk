@@ -9,6 +9,16 @@ namespace musicsort
 {
     public static class Utils
     {
+        static StreamWriter LogFile { get; set; } = null;
+        public static void OpenLog()
+        {
+            LogFile = File.AppendText("mzk.log");
+        }
+        public static void CloseLog()
+        {
+            LogFile.Flush();
+            LogFile.Close();
+        }
         public static void DeleteEmptyFolders()
         {
             foreach (string s in Directory.EnumerateDirectories(Constants.BasePath))
@@ -52,6 +62,18 @@ namespace musicsort
                 targetPath = $"{Path.GetFileNameWithoutExtension(targetPath)} ({ct}){Path.GetExtension(targetPath)}";
             }
             oldPath.MoveTo(targetPath);
+        }
+        public static bool ShouldIgnore(string path)
+        {
+            foreach (string s in Constants.IgnoreFolders) if (path.Contains(s)) return true;
+            return false;
+        }
+        public static void WriteLine(object obj)
+        {
+            string line = $"{obj}";
+            Console.WriteLine(line);
+            if (LogFile is null) throw new Exception("Must open the log before using Utils.WriteLine!");
+            LogFile.WriteLine(line);
         }
     }
 }

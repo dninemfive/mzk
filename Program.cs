@@ -9,25 +9,31 @@ namespace musicsort
     static class Program
     {
         
-        public static Dictionary<string, string> newFileNames = new();
+        public static Dictionary<string, string> newFileNames = new();        
         static void Main()
         {
+            Utils.OpenLog();
             MoveSongsIn(Constants.BasePath);    
             UpdatePlaylists();
             Utils.DeleteEmptyFolders();
+            Utils.CloseLog();
         }
         public static void MoveSongsIn(string folder)
-        {
-            if (Constants.IgnoreFolders.Contains(folder + @"\")) return;
+        {            
             foreach (string file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
             {
+                if (Utils.ShouldIgnore(file))
+                {
+                    Utils.WriteLine($"@ IGNORE: {file}");
+                    continue;
+                }
                 if (Constants.ExtensionsToDelete.Contains(Path.GetExtension(file)))
                 {
-                    Console.WriteLine($"DELETE: {file}");
+                    Utils.WriteLine($"! DELETE: {file}");
                     //System.IO.File.Delete(file);
                     continue;
                 }
-                Console.WriteLine($"MOVE  : {file}");
+                Utils.WriteLine($">  MOVE : {file}");
                 // MoveSong(file);
             }
         }
@@ -39,7 +45,7 @@ namespace musicsort
         static void MoveSong(string oldPath)
         {
             // load file at path
-            Console.WriteLine($"Moving {oldPath}...");
+            Utils.WriteLine($"Moving {oldPath}...");
             TagLib.File file;
             try
             {
@@ -48,16 +54,16 @@ namespace musicsort
             catch (Exception e)
             {
                 oldPath.MoveToUnsorted();
-                Console.WriteLine(e);
+                Utils.WriteLine(e);
                 return;
             }
             string newPath = NewPath(file.Tag, oldPath); 
             if (newPath == oldPath) return;
-            Console.WriteLine(newPath);            
+            Utils.WriteLine(newPath);            
             // attempt to move to that path
             if(System.IO.File.Exists(newPath))
             {
-                Console.WriteLine($"Copy from {oldPath} to {newPath} failed (file already exists).");
+                Utils.WriteLine($"Copy from {oldPath} to {newPath} failed (file already exists).");
                 oldPath.MoveToUnsorted();
                 return;
             }
@@ -67,7 +73,7 @@ namespace musicsort
             }
             catch(Exception e)
             {
-                Console.WriteLine($"Copy from {oldPath} to {newPath} failed ({e.Message}).");
+                Utils.WriteLine($"Copy from {oldPath} to {newPath} failed ({e.Message}).");
                 return;
             }
             newFileNames[oldPath] = newPath;
