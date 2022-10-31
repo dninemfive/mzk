@@ -106,7 +106,7 @@ namespace musicsort
             return newName.Safe() + ext;
         }
         public static string NewPath(Tag t, string oldPath) => Path.Join(NewDirectory(t), NewFileName(t, oldPath));
-        static string Artist(this Tag t) => Sieve(string.IsNullOrEmpty, "_", t.JoinedAlbumArtists, t.JoinedPerformers, t.JoinedComposers);
+        static string Artist(this Tag t) => Sieve((x) => !string.IsNullOrEmpty(x), @default: "_", t.JoinedAlbumArtists, t.JoinedPerformers, t.JoinedComposers);
         static string Album(this Tag t)
         {
             if (!t.Album.NullOrEmpty()) return t.Album;
@@ -115,7 +115,11 @@ namespace musicsort
         public static bool NullOrEmpty(this string s) => string.IsNullOrEmpty(s);
         public static T Sieve<T>(Func<T, bool> lambda, T @default, params T[] ts)
         {
-            foreach (T t in ts) if (lambda(t)) return t;
+            foreach (T t in ts)
+            {
+                Utils.WriteLine($"lambda({t}) is {lambda(t)}");
+                if(lambda(t)) return t;
+            }
             return @default;
         }
         public static string Safe(this string s, bool directory = false)
@@ -131,6 +135,7 @@ namespace musicsort
                 ret = ret[0..^1];
             }
             if (directory) ret = @"C:\" + ret[3..];
+            while (ret.Contains(@"\\")) ret = ret.Replace(@"\\", @"\");
             return ret.Trim();
         }
         static void UpdatePlaylists()

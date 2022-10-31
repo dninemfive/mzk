@@ -15,6 +15,7 @@ namespace musicsort
             File.WriteAllText("mzk.log", "");
             LogFile = File.AppendText("mzk.log");
             WriteLine("Begin log.");
+            WriteLine($"Running in {(Program.DryRun ? "dry run" : "live")} mode.");
         }
         public static void CloseLog()
         {
