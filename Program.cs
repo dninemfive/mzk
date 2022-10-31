@@ -35,7 +35,7 @@ namespace musicsort
                 }
                 if (Constants.ExtensionsToDelete.Contains(Path.GetExtension(file)))
                 {
-                    Utils.WriteLine($"! DELETE: {file}");
+                    Utils.WriteLine($"! DELETE ! {file}");
                     if(!DryRun) System.IO.File.Delete(file);
                     continue;
                 }
@@ -57,7 +57,7 @@ namespace musicsort
             catch (Exception e)
             {
                 if(!DryRun) oldPath.MoveToUnsorted();
-                Utils.WriteLine($"!!  ERR : Caught exception {e.Message} while attempting to move {oldPath}. Moving to unsorted...");
+                Utils.WriteLine($"!! ERR  !! Caught exception {e.Message} while attempting to move {oldPath}. Moving to unsorted...");
                 return;
             }
             string newPath = NewPath(file.Tag, oldPath);
@@ -66,12 +66,12 @@ namespace musicsort
             if(System.IO.File.Exists(newPath)) return;
             try
             {
-                Utils.WriteLine($">  MOVE : {oldPath}\n        ↪ {newPath}");
+                Utils.WriteLine($">  MOVE  > {oldPath}\n         ↪ {newPath}");
                 if (!DryRun) oldPath.MoveTo(newPath);
             }
             catch(Exception e)
             {
-                Utils.WriteLine($"!!  ERR : Copy from {oldPath} to {newPath} failed ({e.Message}).");
+                Utils.WriteLine($"!! ERR  !! Copy from {oldPath} to {newPath} failed ({e.Message}).");
                 return;
             }
             newFileNames[oldPath] = newPath;
@@ -106,29 +106,29 @@ namespace musicsort
             return newName.Safe() + ext;
         }
         public static string NewPath(Tag t, string oldPath) => Path.Join(NewDirectory(t), NewFileName(t, oldPath));
-        static string Artist(this Tag t)
-        {
-            if (!t.JoinedAlbumArtists.NullOrEmpty()) return t.JoinedAlbumArtists;
-            if (!t.JoinedPerformers.NullOrEmpty()) return t.JoinedPerformers;
-            if (!t.JoinedComposers.NullOrEmpty()) return t.JoinedComposers;
-            return "_";
-        }
+        static string Artist(this Tag t) => Sieve(string.IsNullOrEmpty, "_", t.JoinedAlbumArtists, t.JoinedPerformers, t.JoinedComposers);
         static string Album(this Tag t)
         {
             if (!t.Album.NullOrEmpty()) return t.Album;
             return null;
         }
-        public static bool NullOrEmpty(this string s)
+        public static bool NullOrEmpty(this string s) => string.IsNullOrEmpty(s);
+        public static T Sieve<T>(Func<T, bool> lambda, T @default, params T[] ts)
         {
-            return !(s?.Length > 0);
+            foreach (T t in ts) if (lambda(t)) return t;
+            return @default;
         }
         public static string Safe(this string s, bool directory = false)
         {
             string ret = s;
             foreach (char c in Constants.ForbiddenCharacters)
             {
-                if (directory && (c == '\\' || c == '/')) continue;
+                if (directory && (c is '\\' or '/')) continue;
                 ret = ret.Replace(c, '_');
+            }
+            while(ret.Last() == '.')
+            {
+                ret = ret[0..^1];
             }
             if (directory) ret = @"C:\" + ret[3..];
             return ret.Trim();
