@@ -8,7 +8,7 @@ namespace musicsort
 {    
     static class Program
     {
-        public static bool DryRun { get; private set; } = true;
+        public static bool DryRun { get; private set; } = false;
         public static Dictionary<string, string> newFileNames = new();        
         static void Main()
         {
@@ -117,7 +117,7 @@ namespace musicsort
         {
             foreach (T t in ts)
             {
-                Utils.WriteLine($"lambda({t}) is {lambda(t)}");
+                //Utils.WriteLine($"lambda({t}) is {lambda(t)}");
                 if(lambda(t)) return t;
             }
             return @default;

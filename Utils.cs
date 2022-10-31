@@ -49,7 +49,7 @@ namespace musicsort
         }
         public static void CopyTo(this string oldPath, string newPath)
         {
-            if (!Directory.Exists(newPath)) Directory.CreateDirectory(newPath);
+            if (!Directory.Exists(newPath)) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
             File.Copy(oldPath, newPath);
         }
         public static void MoveTo(this string oldPath, string newPath)
