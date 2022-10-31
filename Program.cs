@@ -28,7 +28,7 @@ namespace musicsort
         {            
             foreach (string file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
             {
-                if (Utils.ShouldIgnore(file))
+                if (file.ShouldIgnore())
                 {
                     // Utils.WriteLine($"@ IGNORE: {file}");
                     continue;
@@ -128,7 +128,7 @@ namespace musicsort
             }
             while(ret.Last() == '.')
             {
-                ret = ret[0..^1];
+                ret = ret.TrimEnd('.');
             }
             if (directory) ret = @"C:\" + ret[3..];
             return ret.Trim();

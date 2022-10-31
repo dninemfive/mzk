@@ -66,7 +66,7 @@ namespace musicsort
             }
             oldPath.MoveTo(targetPath);
         }
-        public static bool ShouldIgnore(string path)
+        public static bool ShouldIgnore(this string path)
         {
             foreach (string s in Constants.IgnoreFolders) if (path.Contains(s)) return true;
             return false;
