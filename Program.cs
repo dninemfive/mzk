@@ -10,8 +10,10 @@ namespace musicsort
     {
         public static bool DryRun { get; private set; } = false;
         public static Dictionary<string, string> newFileNames = new();        
-        static void Main()
+        static void Main(string[] args)
         {
+            if (args.Contains("--dryrun")) DryRun = true;
+            if (args.Contains("--resort")) Constants.IgnoreFolders.RemoveAt(0);
             Utils.OpenLog();
             try
             {

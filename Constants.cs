@@ -15,8 +15,8 @@ namespace musicsort
                             Playlists = @"zzz_Playlists\",
                             foobar2000 = @"_foobar2000\";
         public static readonly string ForbiddenCharacters = @"<>:/\|?*" + '"';
-        public static readonly List<string> ExtensionsToDelete = new List<string>() { ".jpg", ".db", ".ini" }, 
-                                            PlaylistExtensions = new List<string>() { ".m3u8" };
+        public static readonly List<string> ExtensionsToDelete = new() { ".jpg", ".db", ".ini" }, 
+                                            PlaylistExtensions = new() { ".m3u8" };
         public static readonly List<string> IgnoreFolders = new()
         {
             BasePath + Files,
