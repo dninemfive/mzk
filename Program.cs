@@ -4,7 +4,7 @@ using TagLib;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace musicsort
+namespace mzk
 {    
     static class Program
     {

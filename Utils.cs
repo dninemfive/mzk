@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace musicsort
+namespace mzk
 {
     public static class Utils
     {
