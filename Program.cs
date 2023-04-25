@@ -150,9 +150,9 @@ namespace mzk
             List<string> text = new();
             foreach(string s in System.IO.File.ReadLines(filename))
             {
-                if(newFileNames.ContainsKey(s))
+                if(newFileNames.TryGetValue(s, out string value))
                 {
-                    text.Add(newFileNames[s]);
+                    text.Add(value);
                 } else
                 {
                     text.Add(s);

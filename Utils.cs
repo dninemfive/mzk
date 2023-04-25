@@ -49,7 +49,7 @@ namespace mzk
         }
         public static void CopyTo(this string oldPath, string newPath)
         {
-            if (!Directory.Exists(newPath)) Directory.CreateDirectory(Path.GetDirectoryName(newPath));
+            if (!Directory.Exists(newPath)) Directory.CreateDirectory(Path.GetDirectoryName(newPath) ?? throw new Exception($"`{newPath}` is not a valid path!"));
             File.Copy(oldPath, newPath);
         }
         public static void MoveTo(this string oldPath, string newPath)
