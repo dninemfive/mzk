@@ -4,7 +4,7 @@ using TagLib;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace mzk
+namespace d9.mzk
 {    
     static class Program
     {
@@ -93,22 +93,20 @@ namespace mzk
             string oldName = Path.GetFileName(oldPath),
                    ext = Path.GetExtension(oldPath),
                    newName = "";
-            // [disc number].[song number] - `
             if (t.Disc != 0)
             {
-                newName += t.Disc + "." + t.Track + Constants.NumberSeperator;
+                newName += $"{t.Disc}.{t.Track}{Constants.NumberSeperator}";
             }
             else if (t.Track != 0)
             {
-                newName += t.Track + Constants.NumberSeperator;
+                newName += $"{t.Track}{Constants.NumberSeperator}";
             }
-            // <song name>.<ext>
             newName += t.Title;
             if (newName.Length < 1) return oldName;
             return newName.Safe() + ext;
         }
         public static string NewPath(Tag t, string oldPath) => Path.Join(NewDirectory(t), NewFileName(t, oldPath));
-        static string Artist(this Tag t) => Sieve((x) => !string.IsNullOrEmpty(x), @default: "_", t.JoinedAlbumArtists, t.JoinedPerformers, t.JoinedComposers);
+        static string Artist(this Tag t) => Sieve((x) => !string.IsNullOrEmpty(x), "_", t.JoinedAlbumArtists, t.JoinedPerformers, t.JoinedComposers);
         static string Album(this Tag t)
         {
             if (!t.Album.NullOrEmpty()) return t.Album;
@@ -116,14 +114,7 @@ namespace mzk
         }
         public static bool NullOrEmpty(this string s) => string.IsNullOrEmpty(s);
         public static T Sieve<T>(Func<T, bool> lambda, T @default, params T[] ts)
-        {
-            foreach (T t in ts)
-            {
-                //Utils.WriteLine($"lambda({t}) is {lambda(t)}");
-                if(lambda(t)) return t;
-            }
-            return @default;
-        }
+            => ts.FirstOrDefault(x => lambda(x), @default);
         public static string Safe(this string s, bool directory = false)
         {
             string ret = s;
@@ -161,7 +152,7 @@ namespace mzk
             string toWrite = "";
             foreach(string s in text)
             {
-                toWrite += s + "\n";
+                toWrite += $"{s}\n";
             }
             System.IO.File.WriteAllText(filename, toWrite);
         }        

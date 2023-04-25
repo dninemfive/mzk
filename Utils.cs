@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace mzk
+namespace d9.mzk
 {
     public static class Utils
     {
