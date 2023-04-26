@@ -13,7 +13,7 @@ namespace d9.mzk
         public static Log Log { get; private set; }
         static void Main()
         {
-            if (CommandLineArgs.GetFlag("reSort")) Constants.IgnoreFolders.RemoveAt(0);
+            if (CommandLineArgs.GetFlag("resort")) Constants.IgnoreFolders.RemoveAt(0);
             Log = new("mzk.log");
             Log.WriteLine($"mzk running in {(DryRun ? "dry run" : "live")} mode.");
             try
