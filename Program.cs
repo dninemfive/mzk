@@ -8,23 +8,23 @@ namespace d9.mzk
 {    
     static class Program
     {
-        public static bool DryRun { get; private set; } = false;
+        public static readonly bool DryRun = CommandLineArgs.GetFlag("dryrun", 'D');
         public static Dictionary<string, string> NewFileNames = new();
         public static Log Log { get; private set; }
-        static void Main(string[] args)
+        static void Main()
         {
-            if (args.Contains("--dryrun")) DryRun = true;
-            if (args.Contains("--resort")) Constants.IgnoreFolders.RemoveAt(0);
+            if (CommandLineArgs.GetFlag("reSort")) Constants.IgnoreFolders.RemoveAt(0);
             Log = new("mzk.log");
-            Log.WriteLine($"Running in {(DryRun ? "dry run" : "live")} mode.");
+            Log.WriteLine($"mzk running in {(DryRun ? "dry run" : "live")} mode.");
             try
             {
                 MoveSongsIn(Constants.BasePath);
                 UpdatePlaylists();
                 Constants.BasePath.DeleteEmptyFolders(Constants.IgnoreFolders.ToArray());
-            } finally
+            }
+            finally
             {
-                Log.WriteLine("Disposing log...");
+                Log.WriteLine("Done!");
                 Log.Dispose();
             }
         }
@@ -34,7 +34,7 @@ namespace d9.mzk
             {
                 if (ShouldIgnore(file))
                 {
-                    // Utils.WriteLine($"@ IGNORE: {file}");
+                    // Utils.DebugLog($"@ IGNORE: {file}");
                     continue;
                 }
                 if (Constants.ExtensionsToDelete.Contains(Path.GetExtension(file)))
@@ -81,6 +81,9 @@ namespace d9.mzk
             }
             oldPath.MoveFileTo(targetPath);
         }
-        public static bool ShouldIgnore(string path) => Constants.IgnoreFolders.Contains(path);
+        public static bool ShouldIgnore(string path)
+        {
+            return Constants.IgnoreFolders.Where(x => path.IsInFolder(Path.Join(Constants.BasePath, x))).Any();
+        }
     }
 }

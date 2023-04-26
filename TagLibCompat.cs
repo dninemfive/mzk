@@ -31,7 +31,7 @@ namespace d9.mzk
             string newPath = NewPath(file.Tag, oldPath);
             // file system is case-insensitive on Windows
             if (newPath.ToLower() == oldPath.ToLower()) return;
-            if (System.IO.File.Exists(newPath)) return;
+            if (File.Exists(newPath)) return;
             try
             {
                 Program.Log.WriteLine($">  MOVE  > {oldPath}\n         ↪ {newPath}");
@@ -48,7 +48,7 @@ namespace d9.mzk
         static string NewDirectory(TagLib.Tag t)
         {
             string result = Path.Join(Constants.BasePath, Constants.Files, t.Artist().Trim().PathSafe());
-            if (!t.Album.NullOrEmpty()) Path.Join(result, t.Album.PathSafe()); 
+            if (!t.Album.NullOrEmpty()) Path.Join(result, t?.Album.PathSafe()); 
             return result;
         }
         static string NewFileName(TagLib.Tag t, string oldPath)
