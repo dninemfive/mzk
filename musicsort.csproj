@@ -3,13 +3,19 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
-    <StartupObject>musicsort.Program</StartupObject>
+    <StartupObject>d9.mzk.Program</StartupObject>
     <RootNamespace>d9.mzk</RootNamespace>
     <Nullable>warnings</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="taglib-sharp-netstandard2.0" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="utl">
+      <HintPath>..\utl\bin\Release\net7.0\utl.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
