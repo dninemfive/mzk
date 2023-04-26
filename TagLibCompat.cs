@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TagLib;
+using System.IO;
 
-namespace d9.mzk.compat.TagLib
+namespace d9.mzk
 {
-    internal static class TagLibUtils
+    internal static class TagUtils
     {
         /// <summary>
         /// Takes a path to a song file and moves it to a location based on its metadata (see NewFilePath() for details)
@@ -17,10 +17,10 @@ namespace d9.mzk.compat.TagLib
         /// <param name="oldPath"></param>
         public static void MoveSong(string oldPath)
         {
-            File file;
+            TagLib.File file;
             try
             {
-                file = File.Create(oldPath);
+                file = TagLib.File.Create(oldPath);
             }
             catch (Exception e)
             {
@@ -45,19 +45,16 @@ namespace d9.mzk.compat.TagLib
             Program.NewFileNames[oldPath] = newPath;
         }
         // /Music/Files/[artist]/[album]/[disc number].[song number] - <song name>.<ext>
-        static string NewDirectory(Tag t)
+        static string NewDirectory(TagLib.Tag t)
         {
-            // [artist]
-            string newPath = System.IO.Path.Join(Constants.BasePath, Constants.Files, t.Artist().Trim()) + @"\";
-            // [album]
-            string album;
-            if ((album = t.Album()) is not null) newPath += album.Safe() + @"\";
-            return newPath.Safe(directory: true);
+            string result = Path.Join(Constants.BasePath, Constants.Files, t.Artist().Trim().PathSafe());
+            if (!t.Album.NullOrEmpty()) Path.Join(result, t.Album.PathSafe()); 
+            return result;
         }
-        static string NewFileName(Tag t, string oldPath)
+        static string NewFileName(TagLib.Tag t, string oldPath)
         {
-            string oldName = System.IO.Path.GetFileName(oldPath),
-                   ext = System.IO.Path.GetExtension(oldPath),
+            string oldName = Path.GetFileName(oldPath),
+                   ext = Path.GetExtension(oldPath),
                    newName = "";
             if (t.Disc != 0)
             {
@@ -69,14 +66,9 @@ namespace d9.mzk.compat.TagLib
             }
             newName += t.Title;
             if (newName.Length < 1) return oldName;
-            return newName.Safe() + ext;
+            return newName.PathSafe() + ext;
         }
-        public static string NewPath(Tag t, string oldPath) => System.IO.Path.Join(NewDirectory(t), NewFileName(t, oldPath));
-        static string Artist(this Tag t) => Program.Sieve((x) => !string.IsNullOrEmpty(x), "_", t.JoinedAlbumArtists, t.JoinedPerformers, t.JoinedComposers);
-        static string Album(this Tag t)
-        {
-            if (!t.Album.NullOrEmpty()) return t.Album;
-            return null;
-        }
+        public static string NewPath(TagLib.Tag t, string oldPath) => Path.Join(NewDirectory(t), NewFileName(t, oldPath));
+        static string Artist(this TagLib.Tag t) => Utils.Sieve((x) => !string.IsNullOrEmpty(x), "_", t.JoinedAlbumArtists, t.JoinedPerformers, t.JoinedComposers);
     }
 }

@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using d9.utl;
-using d9.mzk.compat.TagLib;
 
 namespace d9.mzk
 {    
@@ -44,28 +43,9 @@ namespace d9.mzk
                     if(!DryRun) File.Delete(file);
                     continue;
                 }
-                TagLibUtils.MoveSong(file);
+                TagUtils.MoveSong(file);
             }
         }        
-        public static bool NullOrEmpty(this string s) => string.IsNullOrEmpty(s);
-        public static T Sieve<T>(Func<T, bool> lambda, T @default, params T[] ts)
-            => ts.FirstOrDefault(x => lambda(x), @default);
-        public static string Safe(this string s, bool directory = false)
-        {
-            string ret = s;
-            foreach (char c in Constants.ForbiddenCharacters)
-            {
-                if (directory && (c is '\\' or '/')) continue;
-                ret = ret.Replace(c, '_');
-            }
-            while(ret.Last() == '.')
-            {
-                ret = ret[0..^1];
-            }
-            if (directory) ret = @"C:\" + ret[3..];
-            while (ret.Contains(@"\\")) ret = ret.Replace(@"\\", @"\");
-            return ret.Trim();
-        }
         static void UpdatePlaylists()
         {
             foreach (string s in Directory.EnumerateFiles(Path.Join(Constants.BasePath, Constants.Playlists))) UpdatePlaylist(s);
@@ -93,11 +73,11 @@ namespace d9.mzk
         }
         public static void MoveToUnsorted(this string oldPath)
         {
-            string targetPath = Constants.BasePath + Constants.Unsorted + oldPath.Replace(Constants.BasePath, "");
+            string targetPath = Path.Join(Constants.BasePath, Constants.Unsorted, Path.GetRelativePath(Constants.BasePath, oldPath));
             int ct = 0;
             while (File.Exists(targetPath))
             {
-                targetPath = $"{Path.GetFileNameWithoutExtension(targetPath)} ({ct}){Path.GetExtension(targetPath)}";
+                targetPath = $"{Path.GetFileNameWithoutExtension(targetPath)} ({++ct}){Path.GetExtension(targetPath)}";
             }
             oldPath.MoveFileTo(targetPath);
         }
