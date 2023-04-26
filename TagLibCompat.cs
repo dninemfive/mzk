@@ -48,7 +48,7 @@ namespace d9.mzk
         static string NewDirectory(TagLib.Tag t)
         {
             string result = Path.Join(Constants.BasePath, Constants.Files, t.Artist().Trim().PathSafe());
-            if (!t.Album.NullOrEmpty()) Path.Join(result, t?.Album.PathSafe()); 
+            if (!t.Album.NullOrEmpty()) result = Path.Join(result, t.Album.PathSafe()); 
             return result;
         }
         static string NewFileName(TagLib.Tag t, string oldPath)
