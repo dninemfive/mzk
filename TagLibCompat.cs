@@ -56,6 +56,27 @@ namespace d9.mzk
             string oldName = Path.GetFileName(oldPath),
                    ext = Path.GetExtension(oldPath),
                    newName = "";
+            if(t.Title == "My World Is Empty Without You")
+            {
+                byte[] bytes = File.ReadAllBytes(oldPath);
+                string filename = "test.txt";
+                File.WriteAllText(filename, "");
+                StreamWriter writer = File.AppendText(filename);
+                int progressInterval = bytes.Length / 100;
+                Program.Log.WriteLine($"Total bytes: {bytes.Length}; interval: {progressInterval}");
+                foreach ((byte b, int i) in bytes.WithProgress(Program.Log))
+                {
+                    writer.Write(b switch
+                    {
+                        >= (byte)'a' and <= (byte)'z' => (char)b,
+                        >= (byte)'A' and <= (byte)'Z' => (char)b,
+                        >= 1 and <= 9 => (char)('0' + b),
+                        0 => '_',
+                        _ => b.ToHex()
+                    });
+                    if (i % 128 == 0) writer.Write("\n");
+                }
+            }
             if (t.Disc != 0)
             {
                 newName += $"{t.Disc}.{t.Track}{Constants.NumberSeperator}";
