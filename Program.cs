@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using d9.utl;
+using RegawMOD.Android;
 
 namespace d9.mzk
 {    
@@ -13,6 +14,7 @@ namespace d9.mzk
         public static Log Log { get; private set; }
         static void Main()
         {
+            AndroidController controller = AndroidController.Instance;
             if (CommandLineArgs.GetFlag("resort")) Constants.IgnoreFolders.RemoveAt(0);
             Log = new("mzk.log");
             Log.WriteLine($"mzk running in {(DryRun ? "dry run" : "live")} mode.");
@@ -22,6 +24,8 @@ namespace d9.mzk
                 UpdatePlaylists();
                 Constants.BasePath.DeleteEmptyFolders(Constants.IgnoreFolders.ToArray());
                 Log.WriteLine(DriveInfo.GetDrives().ListNotation());
+                controller.WaitForDevice();
+                Console.WriteLine(controller.ConnectedDevices.ListNotation());
             }
             finally
             {
