@@ -3,7 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using d9.utl;
-using RegawMOD.Android;
+using MediaDevices;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 
 namespace d9.mzk
 {    
@@ -14,18 +16,46 @@ namespace d9.mzk
         public static Log Log { get; private set; }
         static void Main()
         {
-            AndroidController controller = AndroidController.Instance;
-            if (CommandLineArgs.GetFlag("resort")) Constants.IgnoreFolders.RemoveAt(0);
             Log = new("mzk.log");
+            if (CommandLineArgs.GetFlag("resort")) Constants.IgnoreFolders.RemoveAt(0);
+            IEnumerable<string> copyto = CommandLineArgs.TryGet("copyto", CommandLineArgs.Parsers.Raw);
+            Log.WriteLine(copyto.PrintNull());
+            string deviceName = null, devicePath = null;
+            if(copyto is not null)
+            {
+                if (copyto.Count() < 2)
+                {
+                    Log.WriteLine($"The --copyto command was specified but only {copyto.Count()} arguments were provided. It needs 2!");
+                    return;
+                }
+                deviceName = copyto.First();
+                devicePath = copyto.ElementAt(1);
+            }
             Log.WriteLine($"mzk running in {(DryRun ? "dry run" : "live")} mode.");
             try
             {
+                if(deviceName is not null && devicePath is not null && OperatingSystem.IsWindows() && OperatingSystem.IsWindowsVersionAtLeast(7))
+                {
+                    // to suppress CA1416, explicitly declare a getter function
+                    static string friendlyName(MediaDevice x)
+                    {
+                        if (!OperatingSystem.IsWindows() || !OperatingSystem.IsWindowsVersionAtLeast(7)) throw new PlatformNotSupportedException();
+                        return x.FriendlyName;
+                    }
+                    IEnumerable<MediaDevice> mds = MediaDevice.GetDevices().Where(x => friendlyName(x) == deviceName);
+                    Log.WriteLine(mds.Select(friendlyName).ListNotation());
+                    foreach(MediaDevice md in mds)
+                    {
+                        md.Connect();
+                        Log.WriteLine(md.PrettyPrint());
+                        md.Disconnect();
+                    }
+                    foreach (MediaDevice md in mds) md.Dispose();
+                }
+                return;
                 MoveSongsIn(Constants.BasePath);
                 UpdatePlaylists();
                 Constants.BasePath.DeleteEmptyFolders(Constants.IgnoreFolders.ToArray());
-                Log.WriteLine(DriveInfo.GetDrives().ListNotation());
-                controller.WaitForDevice();
-                Console.WriteLine(controller.ConnectedDevices.ListNotation());
             }
             finally
             {
