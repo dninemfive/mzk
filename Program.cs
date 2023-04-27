@@ -21,6 +21,7 @@ namespace d9.mzk
                 MoveSongsIn(Constants.BasePath);
                 UpdatePlaylists();
                 Constants.BasePath.DeleteEmptyFolders(Constants.IgnoreFolders.ToArray());
+                Log.WriteLine(DriveInfo.GetDrives().ListNotation());
             }
             finally
             {
