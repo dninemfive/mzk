@@ -21,8 +21,9 @@ internal static class TagUtils
         }
         catch (Exception e)
         {
-            if (!Program.DryRun) oldPath.MoveToUnsorted();
             Program.Log.WriteLine($"!! ERR  !! Caught exception {e.Message} while attempting to move {oldPath}. Moving to unsorted...");
+            if (!Program.DryRun)
+                oldPath.MoveToUnsorted();
             return;
         }
         string newPath = NewPath(file.Tag, oldPath);

@@ -5,7 +5,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <StartupObject>d9.mzk.Program</StartupObject>
     <RootNamespace>d9.mzk</RootNamespace>
-    <Nullable>warnings</Nullable>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

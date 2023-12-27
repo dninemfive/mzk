@@ -16,9 +16,9 @@ static class Program
     {
         Log = new("mzk.log");
         if (CommandLineArgs.GetFlag("resort")) Constants.IgnoreFolders.RemoveAt(0);
-        IEnumerable<string> copyto = CommandLineArgs.TryGet("copyto", CommandLineArgs.Parsers.Raw);
+        IEnumerable<string>? copyto = CommandLineArgs.TryGet("copyto", CommandLineArgs.Parsers.Raw);
         Log.WriteLine(copyto?.ListNotation().PrintNull());
-        string deviceName = null, devicePath = null;
+        string? deviceName = null, devicePath = null;
         if(copyto is not null)
         {
             if (copyto.Count() < 2)
@@ -46,6 +46,7 @@ static class Program
                 {
                     md.Connect();
                     Log.WriteLine(md.PrettyPrint());
+                    Log.WriteLine(md.EnumerateDirectories(devicePath).PrettyPrint());
                     md.Disconnect();
                 }
                 foreach (MediaDevice md in mds) md.Dispose();
@@ -65,17 +66,15 @@ static class Program
         foreach (string file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
         {
             if (ShouldIgnore(file))
-            {
-                // Utils.DebugLog($"@ IGNORE: {file}");
                 continue;
-            }
             if (Constants.ExtensionsToDelete.Contains(Path.GetExtension(file)))
             {
-                Log.WriteLine($"! DELETE ! {file}");
-                if(!DryRun) File.Delete(file);
-                continue;
+                file.DeleteIf(!DryRun);
+            } 
+            else
+            {
+                TagUtils.MoveSong(file);
             }
-            TagUtils.MoveSong(file);
         }
     }        
     static void UpdatePlaylists()
@@ -90,9 +89,7 @@ static class Program
             text.Add(NewFileNames.TryGetValue(s, out string? value) ? value : s);
         string toWrite = "";
         foreach(string s in text)
-        {
             toWrite += $"{s}\n";
-        }
         File.WriteAllText(filename, toWrite);
     }
     public static void MoveToUnsorted(this string oldPath)
@@ -100,13 +97,19 @@ static class Program
         string targetPath = Path.Join(Constants.BasePath, Constants.Unsorted, Path.GetRelativePath(Constants.BasePath, oldPath));
         int ct = 0;
         while (File.Exists(targetPath))
-        {
             targetPath = $"{Path.GetFileNameWithoutExtension(targetPath)} ({++ct}){Path.GetExtension(targetPath)}";
-        }
         oldPath.MoveFileTo(targetPath);
     }
-    public static bool ShouldIgnore(string path)
+    public static bool ShouldIgnore(string path, bool debugPrint = false)
     {
-        return Constants.IgnoreFolders.Where(x => path.IsInFolder(Path.Join(Constants.BasePath, x))).Any();
+        bool result = Constants.IgnoreFolders.Any(x => path.IsInFolder(Path.Join(Constants.BasePath, x)));
+        if(result && debugPrint)
+            Utils.DebugLog($"@ IGNORE: {path}");
+        return result;
+    }
+    static void DeleteIf(this string path, bool delete)
+    {
+        Log.WriteLine($"! DELETE ! {path}");
+        if (delete) File.Delete(path);
     }
 }
