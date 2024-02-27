@@ -1,6 +1,4 @@
 ﻿using d9.utl;
-using MediaDevices;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,25 +9,24 @@ internal static class Program
 {
     public static readonly bool DryRun = CommandLineArgs.GetFlag("dryrun", 'D');
     public static Dictionary<string, string> NewFileNames = new();
-    public static Log Log { get; private set; } = new("mzk.log");
     static void Main()
     {
         if (CommandLineArgs.GetFlag("resort")) 
             Constants.IgnoreFolders.RemoveAt(0);
         IEnumerable<string>? copyto = CommandLineArgs.TryGet("copyto", CommandLineArgs.Parsers.Raw);
-        Log.WriteLine($"copyto: {copyto?.ListNotation().PrintNull()}");
+        MzkLog.WriteLine($"copyto: {copyto?.ListNotation().PrintNull()}");
         string? deviceName = null, devicePath = null;
         if(copyto is not null)
         {
             if (copyto.Count() < 2)
             {
-                Log.WriteLine($"The --copyto command was specified but only {copyto.Count()} arguments were provided. It needs 2!");
+                MzkLog.WriteLine($"The --copyto command was specified but only {copyto.Count()} arguments were provided. It needs 2!");
                 return;
             }
             deviceName = copyto.First();
             devicePath = copyto.ElementAt(1);
         }
-        Log.WriteLine($"mzk running in {(DryRun ? "dry run" : "live")} mode.");
+        MzkLog.WriteLine($"mzk running in {(DryRun ? "dry run" : "live")} mode.");
         try
         {
             MediaDeviceUtils.PrintStuffAboutMediaDevicesWithNameAndPath(deviceName, devicePath);
@@ -39,8 +36,7 @@ internal static class Program
         }
         finally
         {
-            Log.WriteLine("Done!");
-            Log.Dispose();
+            MzkLog.Dispose();
         }
     }
     public static void MoveSongsIn(string folder)

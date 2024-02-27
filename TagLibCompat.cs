@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using TagLibFile = TagLib.File;
+using Tag = TagLib.Tag;
 
 namespace d9.mzk;
 
@@ -17,13 +18,13 @@ internal static class TagUtils
         TagLibFile? file = oldPath.GetTags();
         if (file is null)
             return;
-        string newPath = NewPath(file.Tag, oldPath);
+        string newPath = file.Tag.NewPath(oldPath);
         // file system is case-insensitive on Windows
         if (newPath.ToLower() == oldPath.ToLower() || File.Exists(newPath))
             return;
         try
         {
-            Program.Log.WriteLine($">  MOVE  > {oldPath}\n         ↪ {newPath}");
+            MzkLog.Move(oldPath, newPath);
             if (!Program.DryRun)
             {
                 oldPath.MoveFileTo(newPath);
@@ -32,7 +33,7 @@ internal static class TagUtils
         }
         catch (Exception e)
         {
-            Program.Log.WriteLine($"!! ERR  !! Copy from {oldPath} to {newPath} failed ({e.Message}).");
+            MzkLog.Error($"Copy from {oldPath} to {newPath} failed!", e);
             return;
         }
     }
@@ -44,21 +45,21 @@ internal static class TagUtils
         } 
         catch(Exception e)
         {
-            Program.Log.WriteLine($"/!\\WRN/!\\ File {path} does not have any music tags. Moving to unsorted...");
+            MzkLog.Warn($"File {path} does not have any music tags. Moving to unsorted...");
             if (printCaughtError)
-                Program.Log.WriteLine($"!! ERR !! Exception: {e.Message}");
+                MzkLog.Error(e);
             path.MoveToUnsortedIf(!Program.DryRun);
             return null;
         }
     }
     // /Music/Files/[artist]/[album]/[disc number].[song number] - <song name>.<ext>
-    static string NewDirectory(TagLib.Tag t)
+    static string NewDirectory(this Tag t)
     {
         string result = Path.Join(Constants.BasePath, Constants.Files, t.Artist().Trim().PathSafe());
         if (!t.Album.NullOrEmpty()) result = Path.Join(result, t.Album.PathSafe()); 
         return result;
     }
-    static string NewFileName(TagLib.Tag t, string oldPath)
+    static string NewFileName(this Tag t, string oldPath)
     {
         string oldName = Path.GetFileName(oldPath),
                ext = Path.GetExtension(oldPath),
@@ -72,9 +73,12 @@ internal static class TagUtils
             newName += $"{t.Track}{Constants.NumberSeperator}";
         }
         newName += t.Title;
-        if (newName.Length < 1) return oldName;
+        if (newName.Length < 1)
+            return oldName;
         return newName.PathSafe() + ext;
     }
-    public static string NewPath(TagLib.Tag t, string oldPath) => Path.Join(NewDirectory(t), NewFileName(t, oldPath));
-    static string Artist(this TagLib.Tag t) => Utils.Sieve((x) => !string.IsNullOrEmpty(x), "_", t.JoinedAlbumArtists, t.JoinedPerformers, t.JoinedComposers);
+    public static string NewPath(this Tag t, string oldPath) 
+        => Path.Join(t.NewDirectory(), t.NewFileName(oldPath));
+    static string Artist(this Tag t) 
+        => Utils.Sieve((x) => !string.IsNullOrEmpty(x), "_", t.JoinedAlbumArtists, t.JoinedPerformers, t.JoinedComposers);
 }

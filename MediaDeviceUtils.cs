@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace d9.mzk;
 internal static class MediaDeviceUtils
@@ -36,12 +34,12 @@ internal static class MediaDeviceUtils
         {
             // to suppress CA1416, explicitly declare a getter function
             IEnumerable<MediaDevice> mds = ConnectedDevicesWithName(deviceName);
-            Program.Log?.WriteLine(mds.Select(SafeFriendlyName).ListNotation());
+            MzkLog.WriteLine(mds.Select(SafeFriendlyName).ListNotation());
             foreach (MediaDevice md in mds)
             {
                 md.Connect();
-                Program.Log?.WriteLine(md.PrettyPrint());
-                Program.Log?.WriteLine(md.EnumerateDirectories(devicePath).PrettyPrint());
+                MzkLog.WriteLine(md.PrettyPrint());
+                MzkLog.WriteLine(md.EnumerateDirectories(devicePath).PrettyPrint());
                 md.Disconnect();
             }
             foreach (MediaDevice md in mds)

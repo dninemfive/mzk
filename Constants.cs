@@ -19,9 +19,5 @@ public static class Constants
         UnsortedFolder,
         Playlists,
         foobar2000
-    };
-    public const string DeletePrefix    =  "! DELETE !",
-                        IgnorePrefix    =  "@ IGNORE @",
-                        MovePrefix      =  ">> MOVE >>",
-                        WarnPrefix      = @"/!\WARN/!\";
+    };    
 }

@@ -11,7 +11,7 @@ internal static class FileUtils
 {
     public static void DeleteIf(this string path, bool notDryRun)
     {
-        Program.Log?.WriteLine($"{Constants.DeletePrefix} {path}");
+        MzkLog.Message(path, LogType.Delete);
         if (notDryRun)
             File.Delete(path);
     }
@@ -23,7 +23,7 @@ internal static class FileUtils
                                    Constants.UnsortedFolder,
                                    oldPath.RelativeTo(Constants.BasePath))
                              .NonConflictingFileName();
-        Program.Log?.WriteLine($"{Constants.MovePrefix} {oldPath} -> {newPath}");
+        MzkLog.Move(oldPath, newPath);
         if (notDryRun)
             File.Move(oldPath, newPath);
     }
@@ -38,11 +38,11 @@ internal static class FileUtils
     }
     internal static string RelativeTo(this string path, string basePath)
         => Path.GetRelativePath(basePath, path);
-    public static bool ShouldBeIgnored(this string path)
+    public static bool ShouldBeIgnored(this string path, bool print = false)
     {
         bool result = Constants.IgnoreFolders.Any(x => path.IsInFolder(Path.Join(Constants.BasePath, x)));
-        if (result)
-            Program.Log?.WriteLine($"{Constants.IgnorePrefix} {path}");
+        if (result && print)
+            MzkLog.Message(path, LogType.Ignore);
         return result;
     }
     public static bool ShouldDeleteExtension(this string path)
