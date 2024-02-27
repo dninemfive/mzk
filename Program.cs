@@ -29,10 +29,12 @@ internal static class Program
         MzkLog.WriteLine($"mzk running in {(DryRun ? "dry run" : "live")} mode.");
         try
         {
-            MediaDeviceUtils.PrintStuffAboutMediaDevicesWithNameAndPath(deviceName, devicePath);
+            // MediaDeviceUtils.PrintStuffAboutMediaDevicesWithNameAndPath(deviceName, devicePath);
             MoveSongsIn(Constants.BasePath);
             UpdatePlaylists();
-            Constants.BasePath.DeleteEmptyFolders(Constants.IgnoreFolders.ToArray());
+            Constants.BasePath.DeleteEmptyFolders([.. Constants.IgnoreFolders]);
+            if(deviceName is not null && devicePath is not null)
+                MediaDeviceUtils.MakeDirectoryStructureMatchOnDevice(Path.Join(Constants.BasePath, "Files"), deviceName, devicePath, true, true);
         }
         finally
         {

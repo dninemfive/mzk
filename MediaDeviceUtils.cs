@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace d9.mzk;
 internal static class MediaDeviceUtils
@@ -46,55 +47,90 @@ internal static class MediaDeviceUtils
                 md.Dispose();
         }
     }
-    static int? FileHash(this string localPath)
-        => throw new NotImplementedException();
-    static void CopyFileTo(this string localPath, DevicePath devicePath, bool overwrite = false)
-        => throw new NotImplementedException();
-    static void MakeDirectoryStructureMatchOnDevice(string baseLocalPath, DevicePath baseDevicePath, bool dryRun = true, bool deleteUnmatchedFiles = false)
+    static void CopyFile(this MediaDevice device, string localPath, string devicePath, bool dryRun = true, bool overwrite = false)
     {
-        HashSet<string> localFiles = Directory.EnumerateFiles(baseLocalPath)
-                                              .Select(x => x.RelativeTo(baseLocalPath))
-                                              .ToHashSet();
-        // for each file in the local path,
-        foreach(string localFile in localFiles.Order())
+        MzkLog.Move(localPath, devicePath);
+        if (!dryRun && (overwrite || !device.FileExists(devicePath)))
+            device.UploadFile(localPath, devicePath);
+    }
+    static void DeleteFile(this MediaDevice device, string devicePath, bool dryRun = true)
+    {
+        MzkLog.Message(devicePath, LogType.Delete);
+        if(!dryRun)
+            device.DeleteFile(devicePath);
+    }
+    static string FileHash(this MediaDevice device, string path)
+    {
+        using MemoryStream ms = new();
+        device.DownloadFile(path, ms);
+        string result = ms.FileHash();
+        MzkLog.WriteLine($"{device}.FileHash({path}) -> {result}");
+        return result;
+    }
+    static bool FolderIsEmpty(this MediaDevice device, string path)
+        => device.DirectoryExists(path) && !device.EnumerateFiles(path).Any() && !device.EnumerateDirectories(path).Any();
+    static void DeleteEmptyFolders(this MediaDevice md, string folder, bool dryRun = true, params string[] pathsToIgnore)
+    {
+        foreach(string path in md.EnumerateDirectories(folder))
         {
-            // if a file exists in the same location and has the same file hash, continue
-            if (DevicePath.EquivalentTo(localFile, Constants.BasePath, baseDevicePath.Path) is DevicePath dp && !(dp.FileHash == baseLocalPath.FileHash()))
-                // otherwise, overwrite any file at that path with local file
-                localFile.CopyFileTo(dp, overwrite: true);
+            if (pathsToIgnore.Any(folder.IsSubfolderOf))
+                md.DeleteFolderRecursive(folder, dryRun);
         }
-        if(deleteUnmatchedFiles)
+    }
+    static void DeleteFolderRecursive(this MediaDevice md, string folder, bool dryRun = true)
+    {
+        MzkLog.Message($"(recursive) {folder}", LogType.Delete);
+        foreach (string path in md.EnumerateDirectories(folder))
+            md.DeleteFolderRecursive(path);
+        if(!dryRun && md.FolderIsEmpty(folder))
+            md.DeleteDirectory(folder);
+    }
+    internal static void MakeDirectoryStructureMatchOnDevice(string baseLocalPath, string deviceName, string baseDevicePath, bool dryRun = true, bool deleteUnmatchedFiles = false)
+    {
+        MzkLog.WriteLine($"MakeDirectoryStructureMatchOnDevice({baseLocalPath}, {deviceName}, {baseDevicePath}, {dryRun}, {deleteUnmatchedFiles})");
+        MediaDevice device = ConnectedDevicesWithName(deviceName).First();
+        MzkLog.WriteLine($"Connecting to {deviceName}...");
+        device.Connect();
+        try
         {
-            // for each file in the device path,
-            foreach (DevicePath devicePath in baseDevicePath.EnumerateFiles())
+            HashSet<string> localFiles = baseLocalPath.EnumerateFilesRecursive()
+                                                      .Select(x => x.RelativeTo(baseLocalPath))
+                                                      .ToHashSet();
+            MzkLog.WriteLine(localFiles.ListNotation());
+            Dictionary<string, string> localHashes  = new(),
+                                   deviceHashes = new();
+            foreach (string relativeFilePath in localFiles.Order())
             {
-                if(devicePath.PathRelativeTo(baseDevicePath) is string relativeDevicePath && localFiles.Contains(relativeDevicePath))
+                string localFilePath  = Path.Join(baseLocalPath, relativeFilePath),
+                   deviceFilePath = Path.Join(baseDevicePath, relativeFilePath);
+                if (!localHashes.ContainsKey(localFilePath))
+                    localHashes[localFilePath] = localFilePath.FileHash();
+                if (device.FileExists(deviceFilePath))
                 {
-                    devicePath.Delete();
+                    deviceHashes[deviceFilePath] = device.FileHash(deviceFilePath);
+                    if (localHashes[localFilePath] == deviceHashes[deviceFilePath])
+                        continue;
+                }
+                device.CopyFile(localFilePath, deviceFilePath, dryRun, overwrite: true);
+            }
+            if (deleteUnmatchedFiles)
+            {
+                // for each file in the device path,
+                foreach (string devicePath in device.EnumerateFiles(baseDevicePath))
+                {
+                    if (devicePath.RelativeTo(baseDevicePath) is string relativePath && localFiles.Contains(relativePath))
+                        device.DeleteFile(devicePath, dryRun);
                 }
             }
+            //  delete all empty folders
+            device.DeleteEmptyFolders(baseDevicePath, dryRun);
+            // also copy playlists over?
+            // and if possible copy playlists from the destination to the source and/or update their file references
         }
-        //  delete all empty folders
-        // also copy playlists over?
-        // and if possible copy playlists from the destination to the source and/or update their file references
+        finally
+        {
+            MzkLog.WriteLine($"Disconnecting from {deviceName}...");
+            device.Disconnect();
+        }        
     }
-}
-internal struct DevicePath
-{
-    public MediaDevice Device;
-    public string Path;
-    internal int? FileHash
-        => throw new NotImplementedException();
-    public bool Exists
-        => throw new NotImplementedException();
-    public bool Delete()
-        => throw new NotImplementedException();
-    public static DevicePath? EquivalentTo(string localPath, string localBaseFolder, string deviceBaseFolder)
-        => throw new NotImplementedException();
-    public IEnumerable<DevicePath> EnumerateFiles()
-        => throw new NotImplementedException();
-    public string? PathRelativeTo(DevicePath other)
-        => throw new NotImplementedException();
-    public IEnumerable<string> EnumerateRelativePaths()
-        => throw new NotImplementedException();
 }
