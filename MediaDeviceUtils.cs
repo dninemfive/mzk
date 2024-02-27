@@ -39,7 +39,7 @@ internal static class MediaDeviceUtils
             {
                 md.Connect();
                 MzkLog.WriteLine(md.PrettyPrint());
-                MzkLog.WriteLine(md.EnumerateDirectories(devicePath).PrettyPrint());
+                MzkLog.WriteLine(md.EnumerateDirectories(devicePath).ListNotation());
                 md.Disconnect();
             }
             foreach (MediaDevice md in mds)
@@ -50,7 +50,7 @@ internal static class MediaDeviceUtils
         => throw new NotImplementedException();
     static void CopyFileTo(this string localPath, DevicePath devicePath, bool overwrite = false)
         => throw new NotImplementedException();
-    static void MakeDirectoryStructureMatchOnDevice(string baseLocalPath, DevicePath baseDevicePath, bool deleteUnmatchedFiles = false)
+    static void MakeDirectoryStructureMatchOnDevice(string baseLocalPath, DevicePath baseDevicePath, bool dryRun = true, bool deleteUnmatchedFiles = false)
     {
         HashSet<string> localFiles = Directory.EnumerateFiles(baseLocalPath)
                                               .Select(x => x.RelativeTo(baseLocalPath))
@@ -81,7 +81,8 @@ internal static class MediaDeviceUtils
 }
 internal struct DevicePath
 {
-    public string Device, Path;
+    public MediaDevice Device;
+    public string Path;
     internal int? FileHash
         => throw new NotImplementedException();
     public bool Exists
