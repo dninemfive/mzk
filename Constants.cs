@@ -7,7 +7,7 @@ public static class Constants
     public const string BasePath = @"C:\Users\dninemfive\Music",
                         NumberSeperator = " - ",
                         Files = @"Files",
-                        Unsorted = @"Unsorted",
+                        UnsortedFolder = @"Unsorted",
                         Playlists = @"zzz_Playlists",
                         foobar2000 = @"_foobar2000";
     
@@ -16,8 +16,12 @@ public static class Constants
     public static readonly List<string> IgnoreFolders = new()
     {
         Files,
-        Unsorted,
+        UnsortedFolder,
         Playlists,
         foobar2000
     };
+    public const string DeletePrefix    =  "! DELETE !",
+                        IgnorePrefix    =  "@ IGNORE @",
+                        MovePrefix      =  ">> MOVE >>",
+                        WarnPrefix      = @"/!\WARN/!\";
 }

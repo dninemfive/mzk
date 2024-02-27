@@ -7,17 +7,17 @@ using System.Linq;
 
 namespace d9.mzk;
 
-static class Program
+internal static class Program
 {
     public static readonly bool DryRun = CommandLineArgs.GetFlag("dryrun", 'D');
     public static Dictionary<string, string> NewFileNames = new();
-    public static Log Log { get; private set; }
+    public static Log Log { get; private set; } = new("mzk.log");
     static void Main()
     {
-        Log = new("mzk.log");
-        if (CommandLineArgs.GetFlag("resort")) Constants.IgnoreFolders.RemoveAt(0);
+        if (CommandLineArgs.GetFlag("resort")) 
+            Constants.IgnoreFolders.RemoveAt(0);
         IEnumerable<string>? copyto = CommandLineArgs.TryGet("copyto", CommandLineArgs.Parsers.Raw);
-        Log.WriteLine(copyto?.ListNotation().PrintNull());
+        Log.WriteLine($"copyto: {copyto?.ListNotation().PrintNull()}");
         string? deviceName = null, devicePath = null;
         if(copyto is not null)
         {
@@ -65,9 +65,9 @@ static class Program
     {            
         foreach (string file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
         {
-            if (ShouldIgnore(file))
+            if (file.ShouldBeIgnored())
                 continue;
-            if (Constants.ExtensionsToDelete.Contains(Path.GetExtension(file)))
+            if (file.ShouldDeleteExtension())
             {
                 file.DeleteIf(!DryRun);
             } 
@@ -79,37 +79,33 @@ static class Program
     }        
     static void UpdatePlaylists()
     {
-        foreach (string s in Directory.EnumerateFiles(Path.Join(Constants.BasePath, Constants.Playlists))) UpdatePlaylist(s);
+        string playlistFolder = Path.Join(Constants.BasePath, Constants.Playlists);
+        foreach (string s in Directory.EnumerateFiles(playlistFolder))
+            UpdatePlaylist(s);
     }
     static void UpdatePlaylist(string filename)
     {
-        if (!Constants.PlaylistExtensions.Contains(Path.GetExtension(filename))) return;
-        List<string> text = new();
-        foreach(string s in File.ReadLines(filename))
-            text.Add(NewFileNames.TryGetValue(s, out string? value) ? value : s);
+        if (!filename.HasPlaylistExtension())
+            return;
+        List<string> text = File.ReadLines(filename)
+                                .Select(x => NewFileNames.TryGetValue(x, out string? value) ? value : x)
+                                .ToList();
         string toWrite = "";
         foreach(string s in text)
             toWrite += $"{s}\n";
         File.WriteAllText(filename, toWrite);
     }
-    public static void MoveToUnsorted(this string oldPath)
+    static void MakeDirectoryStructureMatch(string deviceName, string deviceBasePath)
     {
-        string targetPath = Path.Join(Constants.BasePath, Constants.Unsorted, Path.GetRelativePath(Constants.BasePath, oldPath));
-        int ct = 0;
-        while (File.Exists(targetPath))
-            targetPath = $"{Path.GetFileNameWithoutExtension(targetPath)} ({++ct}){Path.GetExtension(targetPath)}";
-        oldPath.MoveFileTo(targetPath);
-    }
-    public static bool ShouldIgnore(string path, bool debugPrint = false)
-    {
-        bool result = Constants.IgnoreFolders.Any(x => path.IsInFolder(Path.Join(Constants.BasePath, x)));
-        if(result && debugPrint)
-            Utils.DebugLog($"@ IGNORE: {path}");
-        return result;
-    }
-    static void DeleteIf(this string path, bool delete)
-    {
-        Log.WriteLine($"! DELETE ! {path}");
-        if (delete) File.Delete(path);
+        // for each file in the local path,
+        //      if a file exists in the same location and has the same file hash, continue
+        //      otherwise,
+        //          if a file exists in the destination, delete it
+        //          copy file from local to device
+        // for each file in the device path,
+        //      if no corresponding file exists locally, delete it on the device
+        //  delete all empty folders
+        // also copy playlists over?
+        // and if possible copy playlists from the destination to the source and/or update their file references
     }
 }

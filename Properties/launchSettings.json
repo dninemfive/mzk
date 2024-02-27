@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "mzk": {
+      "commandName": "Project",
+      "commandLineArgs": "--dryrun --copyto S10e \"Internal storage/Music\""
+    }
+  }
+}
