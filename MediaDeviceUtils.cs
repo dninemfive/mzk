@@ -59,7 +59,7 @@ internal static class MediaDeviceUtils
         if(!dryRun)
             device.DeleteFile(devicePath);
     }
-    static string FileHash(this MediaDevice device, string path)
+    internal static string FileHash(this MediaDevice device, string path)
     {
         using MemoryStream ms = new();
         device.DownloadFile(path, ms);
