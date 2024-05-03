@@ -11,13 +11,13 @@ public static class Constants
                         Playlists = @"zzz_Playlists",
                         foobar2000 = @"_foobar2000";
     
-    public static readonly List<string> ExtensionsToDelete = new() { ".jpg", ".db", ".ini" }, 
-                                        PlaylistExtensions = new() { ".m3u8" };
-    public static readonly List<string> IgnoreFolders = new()
-    {
+    public static readonly List<string> ExtensionsToDelete = [".jpg", ".db", ".ini"], 
+                                        PlaylistExtensions = [".m3u8"];
+    public static readonly List<string> IgnoreFolders =
+    [
         Files,
         UnsortedFolder,
         Playlists,
         foobar2000
-    };    
+    ];    
 }

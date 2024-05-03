@@ -25,7 +25,7 @@ internal static class FileUtils
                              .NonConflictingFileName();
         MzkLog.Move(oldPath, newPath);
         if (notDryRun)
-            File.Move(oldPath, newPath);
+            oldPath.CreateFolderAndMoveTo(newPath);
     }
     public static string NonConflictingFileName(this string path)
     {
@@ -47,4 +47,9 @@ internal static class FileUtils
     }
     public static bool ShouldDeleteExtension(this string path)
         => Constants.ExtensionsToDelete.Contains(Path.GetExtension(path));
+    public static void CreateFolderAndMoveTo(this string oldPath, string newPath)
+    {
+        _ = Directory.CreateDirectory(Path.GetDirectoryName(newPath)!);
+        File.Move(oldPath, newPath);
+    }
 }

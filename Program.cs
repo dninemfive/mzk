@@ -1,4 +1,5 @@
 ﻿using d9.utl;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,6 +12,7 @@ internal static class Program
     public static Dictionary<string, string> NewFileNames = new();
     static void Main()
     {
+        Console.OutputEncoding = System.Text.Encoding.Unicode;
         if (CommandLineArgs.GetFlag("resort")) 
             Constants.IgnoreFolders.RemoveAt(0);
         IEnumerable<string>? copyto = CommandLineArgs.TryGet("copyto", CommandLineArgs.Parsers.Raw);
