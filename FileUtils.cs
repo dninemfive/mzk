@@ -52,4 +52,6 @@ internal static class FileUtils
         _ = Directory.CreateDirectory(Path.GetDirectoryName(newPath)!);
         File.Move(oldPath, newPath);
     }
+    public static string ToFplPath(this string path)
+        => $"file://{path.RelativeTo(Constants.BasePath).Replace('/', '\\')}";
 }
