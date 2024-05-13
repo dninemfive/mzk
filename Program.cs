@@ -12,12 +12,6 @@ internal static class Program
     public static Dictionary<string, string> NewFileNames = new();
     static void Main()
     {
-        string playlistPath = Path.Combine(Constants.BasePath, Constants.foobar2000, "playlists-v1.4", "0D275264E62333ACED7E35CEA7FC9EA2.fpl");
-        FplPlaylist playlist = FplPlaylist.Read(playlistPath)!;
-        playlist.Update(@"C:\Users\dninemfive\Music\Files\Blondie\Greatest Hits_ Sound & Vision\1.1 - Heart Of Glass [Single Edit].mp3",
-                        @"C:\Users\dninemfive\Music\Files\Blondie\Greatest Hits_ Sound & Vision\1.4 - Call Me.mp3");
-        playlist.Write(playlistPath);
-        return;
         Console.OutputEncoding = System.Text.Encoding.Unicode;
         if (CommandLineArgs.GetFlag("resort")) 
             Constants.IgnoreFolders.RemoveAt(0);
