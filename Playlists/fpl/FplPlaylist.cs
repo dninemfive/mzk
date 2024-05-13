@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,12 +32,38 @@ internal class FplPlaylist : IPlaylist<FplPlaylist>
             return result;
         }
         uint readNextUint()
-            => BitConverter.ToUInt32(readNext(4));
+            => BitConverter.ToUInt32(readNext(sizeof(uint)));
+        long readNextLong()
+            => BitConverter.ToInt64(readNext(sizeof(long)));
+        int readNextInt()
+            => BitConverter.ToInt32(readNext(sizeof(int)));
         uint size = readNextUint();
-        byte[] dataPrime = readNext(size);
+        char[] data = readNext(size).Select(x => (char)x).ToArray();
         uint playlistSize = readNextUint();
+        FplTrackChunk GetNextChunk()
+        {
+            FplTrackChunk result = new(readNextUint(),
+                                       readNextUint(),
+                                       readNextUint(),
+                                       readNextUint(),
+                                       readNextUint(),
+                                       readNextUint(),
+                                       readNextUint(),
+                                       readNextLong(),
+                                       new(readNextInt(),
+                                           readNextInt(),
+                                           readNextInt(),
+                                           readNextInt()),
+                                       readNextUint(),
+                                       readNextUint(),
+                                       readNextUint(),
+                                       readNextUint());
+        }
     }
+    public static IEnumerable<FplTrackChunk> GetChunks(byte[] data, int playlistSize)
+    {
 
+    }
     public bool IsCorrectFiletype(string path)
         => Path.GetExtension(path).Equals(".fpl", StringComparison.OrdinalIgnoreCase);
     public void Update(string oldPath, string newPath)
@@ -47,7 +74,10 @@ internal class FplPlaylist : IPlaylist<FplPlaylist>
     {
         throw new NotImplementedException();
     }
-    public record ReplayGainInfo(int Album, int Track, int AlbumPeak, int TrackPeak) { }
+    public record ReplayGainInfo(int Album, int Track, int AlbumPeak, int TrackPeak)
+    {
+        public static int ByteCount => 4 * sizeof(int);
+    }
     public record FplTrackChunk(uint Unknown1,
                                 uint FileOffset,
                                 uint SubsongIndex,
@@ -61,6 +91,8 @@ internal class FplPlaylist : IPlaylist<FplPlaylist>
                                 uint PrimaryKeyCount,
                                 uint SecondaryKeyCount,
                                 uint SecondaryKeyStartOffset)
-    { }
+    {
+        public static int ByteCount => 11 * sizeof(uint) + 1 * sizeof(long) + ReplayGainInfo.ByteCount;
+    }
     public record FplTrackAttribute(int Key, byte[] FieldName, byte[] Value) { }
 }
