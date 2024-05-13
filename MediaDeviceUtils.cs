@@ -49,7 +49,7 @@ internal static class MediaDeviceUtils
     }
     static void CopyFile(this MediaDevice device, string localPath, string devicePath, bool dryRun = true, bool overwrite = false)
     {
-        MzkLog.Move(localPath, devicePath);
+        MzkLog.Copy(localPath, devicePath);
         if (!dryRun && (overwrite || !device.FileExists(devicePath)))
             device.UploadFile(localPath, devicePath);
     }
@@ -64,7 +64,7 @@ internal static class MediaDeviceUtils
         using MemoryStream ms = new();
         device.DownloadFile(path, ms);
         string result = ms.FileHash();
-        MzkLog.WriteLine($"{device}.FileHash({path}) -> {result}");
+        // MzkLog.WriteLine($"{device}.FileHash({path}) -> {result}");
         return result;
     }
     static bool FolderIsEmpty(this MediaDevice device, string path)
@@ -96,13 +96,28 @@ internal static class MediaDeviceUtils
             HashSet<string> localFiles = baseLocalPath.EnumerateFilesRecursive()
                                                       .Select(x => x.RelativeTo(baseLocalPath))
                                                       .ToHashSet();
-            MzkLog.WriteLine(localFiles.ListNotation());
+            // MzkLog.WriteLine(localFiles.ListNotation());
             Dictionary<string, string> localHashes  = new(),
-                                   deviceHashes = new();
+                                       deviceHashes = new();
+            if (deleteUnmatchedFiles)
+            {
+                Console.WriteLine(baseDevicePath);
+                // for each file in the device path,
+                foreach (string devicePath in device.EnumerateFiles(baseDevicePath))
+                {
+                    Console.WriteLine($"{devicePath} ({devicePath.RelativeTo(baseDevicePath)})");
+                    if (devicePath.RelativeTo(baseDevicePath) is string relativePath && !localFiles.Contains(relativePath))
+                        device.DeleteFile(devicePath, dryRun);
+                }
+            }
+            // todo: check if file exists before copying and if so merely move it
+            // (looks like that's not possible with the MediaDevice API)
             foreach (string relativeFilePath in localFiles.Order())
             {
+                if (relativeFilePath.ShouldDeleteExtension())
+                    continue;
                 string localFilePath  = Path.Join(baseLocalPath, relativeFilePath),
-                   deviceFilePath = Path.Join(baseDevicePath, relativeFilePath);
+                       deviceFilePath = Path.Join(baseDevicePath, relativeFilePath);
                 if (!localHashes.ContainsKey(localFilePath))
                     localHashes[localFilePath] = localFilePath.FileHash();
                 if (device.FileExists(deviceFilePath))
@@ -112,15 +127,6 @@ internal static class MediaDeviceUtils
                         continue;
                 }
                 device.CopyFile(localFilePath, deviceFilePath, dryRun, overwrite: true);
-            }
-            if (deleteUnmatchedFiles)
-            {
-                // for each file in the device path,
-                foreach (string devicePath in device.EnumerateFiles(baseDevicePath))
-                {
-                    if (devicePath.RelativeTo(baseDevicePath) is string relativePath && localFiles.Contains(relativePath))
-                        device.DeleteFile(devicePath, dryRun);
-                }
             }
             //  delete all empty folders
             device.DeleteEmptyFolders(baseDevicePath, dryRun);

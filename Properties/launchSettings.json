@@ -2,7 +2,7 @@
   "profiles": {
     "mzk": {
       "commandName": "Project",
-      "commandLineArgs": "--dryrun_disable --copyto_disable S10e \"/Internal storage/Music/Files/\""
+      "commandLineArgs": "--dryrun --copyto S10e \"/Internal storage/Music/Files/\""
     }
   }
 }

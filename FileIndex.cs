@@ -15,7 +15,7 @@ internal class FileIndex(MediaDevice? device = null)
         get
         {
             if (_device is not null && !_device.IsConnected)
-                throw new Exception($"FileIndex has non-null device {Device.FriendlyName}, but it is not connected!");
+                throw new Exception($"FileIndex has non-null device {_device.FriendlyName}, but it is not connected!");
             return _device;
         }
     }

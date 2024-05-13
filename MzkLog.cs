@@ -12,6 +12,7 @@ internal static class MzkLog
         LogType.Error   =>  "!! ERR  !!",
         LogType.Ignore  =>  "@ IGNORE @",
         LogType.Move    =>  ">> MOVE >>",
+        LogType.Copy    =>  "+> COPY +>",
         LogType.Warning => @"/!\WARN/!\",
         _ => throw new ArgumentOutOfRangeException(nameof(logType))
     };
@@ -27,6 +28,8 @@ internal static class MzkLog
         => Message($"{msg}{AlignWithPrefix}{e.GetType().Name}: {e.Message}", LogType.Error);
     internal static void Move(string oldPath, string newPath)
         => Message($" {oldPath}{AlignWithPrefix}↪{newPath}", LogType.Move);
+    internal static void Copy(string srcPath, string dstPath)
+        => Message($" {srcPath}{AlignWithPrefix}↪{dstPath}", LogType.Copy);
     internal static void Warn(string msg)
         => Message(msg, LogType.Warning);
     internal static void Dispose()
@@ -41,5 +44,6 @@ internal enum LogType
     Error,
     Ignore,
     Move,
+    Copy,
     Warning
 }

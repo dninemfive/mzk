@@ -16,7 +16,7 @@ internal static class Program
         if (CommandLineArgs.GetFlag("resort")) 
             Constants.IgnoreFolders.RemoveAt(0);
         IEnumerable<string>? copyto = CommandLineArgs.TryGet("copyto", CommandLineArgs.Parsers.Raw);
-        MzkLog.WriteLine($"copyto: {copyto?.ListNotation().PrintNull()}");
+        MzkLog.WriteLine($"copyto: {copyto?.ListNotation(brackets: null).PrintNull()}");
         string? deviceName = null, devicePath = null;
         if(copyto is not null)
         {
