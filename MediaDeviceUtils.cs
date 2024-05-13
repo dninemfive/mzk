@@ -85,6 +85,14 @@ internal static class MediaDeviceUtils
         if(!dryRun && md.FolderIsEmpty(folder))
             md.DeleteDirectory(folder);
     }
+    public static IEnumerable<string> EnumerateFilesRecursive(this MediaDevice device, string folder)
+    {
+        foreach (string s in device.EnumerateFiles(folder))
+            yield return s;
+        foreach (string s in device.EnumerateDirectories(folder))
+            foreach (string t in device.EnumerateFilesRecursive(s))
+                yield return t;
+    }
     internal static void MakeDirectoryStructureMatchOnDevice(string baseLocalPath, string deviceName, string baseDevicePath, bool dryRun = true, bool deleteUnmatchedFiles = false)
     {
         MzkLog.WriteLine($"MakeDirectoryStructureMatchOnDevice({baseLocalPath}, {deviceName}, {baseDevicePath}, {dryRun}, {deleteUnmatchedFiles})");
@@ -101,11 +109,9 @@ internal static class MediaDeviceUtils
                                        deviceHashes = new();
             if (deleteUnmatchedFiles)
             {
-                Console.WriteLine(baseDevicePath);
                 // for each file in the device path,
-                foreach (string devicePath in device.EnumerateFiles(baseDevicePath))
+                foreach (string devicePath in device.EnumerateFilesRecursive(baseDevicePath))
                 {
-                    Console.WriteLine($"{devicePath} ({devicePath.RelativeTo(baseDevicePath)})");
                     if (devicePath.RelativeTo(baseDevicePath) is string relativePath && !localFiles.Contains(relativePath))
                         device.DeleteFile(devicePath, dryRun);
                 }
