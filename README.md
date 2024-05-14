@@ -1,0 +1,2 @@
+# mzk - <ins>M</ins>u<ins>s</ins>i<ins>c</ins> Manager
+Command-line program which sorts music in specified folders according to the relevant files' metadata and optionally converts the resulting file structure to a media device (i.e. a phone).

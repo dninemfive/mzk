@@ -54,7 +54,10 @@ internal static class MediaDeviceUtils
             return;
         MzkLog.Copy(localPath, devicePath);
         if (!dryRun)
+        {
+            device.CreateDirectory(Path.GetDirectoryName(devicePath));
             device.UploadFile(localPath, devicePath);
+        }
     }
     static void DeleteFile(this MediaDevice device, string devicePath, bool dryRun = true)
     {
