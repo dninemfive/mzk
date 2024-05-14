@@ -13,25 +13,32 @@ internal class FplPlaylist : IPlaylist<FplPlaylist>
 
     public static FplPlaylist? Read(string path)
     {
-        using ByteArrayReader fileReader = new(File.ReadAllBytes(path));
-        byte[] magic = fileReader.ReadNext(Magic.Length);
+        using ByteArrayReader reader = new(File.ReadAllBytes(path));
+        byte[] magic = reader.ReadNext(Magic.Length);
         if(magic != Magic)
         {
             Console.WriteLine($"Attempt to read {path} as .fpl failed: magic number did not match!");
             return null;
         }
-        uint size = fileReader.ReadNextUint();
-        using ByteArrayReader dataReader = new(fileReader.ReadNext(size));
-        uint playlistSize = fileReader.ReadNextUint();
-        while(!fileReader.ReachedEnd)
+        uint size = reader.ReadNextUint();
+        byte[] data = reader.ReadNext(size);
+        uint playlistSize = reader.ReadNextUint();
+        while(!reader.ReachedEnd)
         {
-            FplTrackChunk current = new(fileReader);
-            int attributeCount = (int)(current.PrimaryKeyCount + current.SecondaryKeyCount);
+            FplTrackChunk curChunk = new(reader);
+            FplTrackAttribute[] curAttributes = new FplTrackAttribute[256];
+            int attributeCount = (int)(curChunk.PrimaryKeyCount + curChunk.SecondaryKeyCount);
+            int realKeys = (int)curChunk.KeyCount - 3;
+            uint[] keyArray = reader.ReadNextUints(realKeys);
+            int trackIndex = 0;
+            for (int i = 0; i < curChunk.PrimaryKeyCount * 2; i += 2)
+            {
+                uint key = keyArray[i];
+                string fieldName = data.NullTerminatedStringStartingAt(keyArray[i + 1]);
+                string fieldValue = data.NullTerminatedStringStartingAt(keyArray[keyArray[i] + curChunk.PrimaryKeyCount * 2 + 1]);
+                curAttributes[trackIndex] = new(key, fieldName, fieldValue);
+            }
         }
-    }
-    public static IEnumerable<FplTrackChunk> GetChunks(byte[] data, int playlistSize)
-    {
-
     }
     public bool IsCorrectFiletype(string path)
         => Path.GetExtension(path).Equals(".fpl", StringComparison.OrdinalIgnoreCase);

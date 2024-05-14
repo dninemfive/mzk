@@ -28,6 +28,13 @@ public class ByteArrayReader(byte[] array) : IDisposable
         => ReadNext(count).Select(x => (char)x).ToArray();
     public uint ReadNextUint()
         => BitConverter.ToUInt32(ReadNext(sizeof(uint)));
+    public uint[] ReadNextUints(int count)
+    {
+        uint[] result = new uint[count];
+        for (int i = 0; i < count; i++)
+            result[i] = ReadNextUint();
+        return result;
+    }
     public long ReadNextLong()
         => BitConverter.ToInt64(ReadNext(sizeof(long)));
     public int ReadNextInt()
