@@ -101,49 +101,54 @@ internal static class MediaDeviceUtils
     }
     internal static void MakeDirectoryStructureMatchOnDevice(string baseLocalPath, string deviceName, string baseDevicePath, bool dryRun = true, bool deleteUnmatchedFiles = false)
     {
-        MzkLog.WriteLine($"MakeDirectoryStructureMatchOnDevice({baseLocalPath}, {deviceName}, {baseDevicePath}, {dryRun}, {deleteUnmatchedFiles})");
-        MediaDevice device = ConnectedDevicesWithName(deviceName).First();
-        MzkLog.WriteLine($"Connecting to {deviceName}...");
-        device.Connect();
+        MzkLog.Write($"Connecting to device `{deviceName}`...");
+        MediaDevice device;
+        try
+        {
+            device = ConnectedDevicesWithName(deviceName).First();
+            device.Connect();
+        } catch(Exception e)
+        {
+            MzkLog.WriteLine($"{e.GetType().Name}: {e.Message}");
+            return;
+        }
+        MzkLog.WriteLine($"Done!");
         try
         {
             HashSet<string> localFiles = baseLocalPath.EnumerateFilesRecursive()
                                                       .Select(x => x.RelativeTo(baseLocalPath))
                                                       .ToHashSet();
             // MzkLog.WriteLine(localFiles.ListNotation());
-            Dictionary<string, string> localHashes  = new(),
-                                       deviceHashes = new();
+            // todo: use device.Rename to move files with a hash match at an incorrect path
             if (deleteUnmatchedFiles)
             {
+                MzkLog.WriteLine($"Deleting unmatched files...");
                 // for each file in the device path,
-                foreach (string devicePath in device.EnumerateFilesRecursive(baseDevicePath))
+                foreach (string devicePath in device.EnumerateFilesRecursive(baseDevicePath).Order())
                 {
                     if (devicePath.RelativeTo(baseDevicePath) is string relativePath && !localFiles.Contains(relativePath))
                         device.DeleteFile(devicePath, dryRun);
                 }
             }
-            // todo: check if file exists before copying and if so merely move it
-            // (looks like that's not possible with the MediaDevice API)
+            MzkLog.WriteLine($"Transferring files...");
             foreach (string relativeFilePath in localFiles.Order())
             {
                 if (relativeFilePath.ShouldDeleteExtension())
                     continue;
                 string localFilePath  = Path.Join(baseLocalPath, relativeFilePath),
                        deviceFilePath = Path.Join(baseDevicePath, relativeFilePath).Replace('\\', '/');
-                if (!localHashes.ContainsKey(localFilePath))
-                    localHashes[localFilePath] = localFilePath.FileHash();
-                if (device.FileExists(deviceFilePath))
+                if (device.FileExists(deviceFilePath) && localFilePath.FileHash() == device.FileHash(deviceFilePath))
                 {
-                    deviceHashes[deviceFilePath] = device.FileHash(deviceFilePath);
-                    if (localHashes[localFilePath] == deviceHashes[deviceFilePath])
-                        continue;
+                    continue;
                 }
                 device.CopyFile(localFilePath, deviceFilePath, dryRun, overwrite: true);
             }
+            MzkLog.WriteLine($"Deleting empty folders...");
             //  delete all empty folders
             device.DeleteEmptyFolders(baseDevicePath, dryRun);
             // also copy playlists over?
             // and if possible copy playlists from the destination to the source and/or update their file references
+            
         }
         finally
         {

@@ -18,6 +18,8 @@ internal static class MzkLog
     };
     private static Exception LogDisposedException(object msg)
         => new($"{typeof(MzkLog).Name}.{nameof(WriteLine)}({msg.PrintNull().Replace("\n", @"\n")}): Log already disposed!");
+    internal static void Write(object msg)
+        => (Log ?? throw LogDisposedException(msg)).Write(msg);
     internal static void WriteLine(object msg)
         => (Log ?? throw LogDisposedException(msg)).WriteLine(msg);
     internal static void Message(object msg, LogType logType)
