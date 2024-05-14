@@ -56,7 +56,8 @@ internal static class TagUtils
     static string NewDirectory(this Tag t)
     {
         string result = Path.Join(Constants.BasePath, Constants.Files, t.Artist().Trim().PathSafe());
-        if (!t.Album.NullOrEmpty()) result = Path.Join(result, t.Album.PathSafe()); 
+        // https://stackoverflow.com/a/4123152
+        if (!t.Album.NullOrEmpty()) result = Path.Join(result, t.Album.PathSafe().Trim('.')); 
         return result;
     }
     static string NewFileName(this Tag t, string oldPath)

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography;
 
 namespace d9.mzk;
@@ -49,8 +50,10 @@ internal static class MediaDeviceUtils
     }
     static void CopyFile(this MediaDevice device, string localPath, string devicePath, bool dryRun = true, bool overwrite = false)
     {
+        if (!overwrite || device.FileExists(devicePath))
+            return;
         MzkLog.Copy(localPath, devicePath);
-        if (!dryRun && (overwrite || !device.FileExists(devicePath)))
+        if (!dryRun)
             device.UploadFile(localPath, devicePath);
     }
     static void DeleteFile(this MediaDevice device, string devicePath, bool dryRun = true)
@@ -123,7 +126,7 @@ internal static class MediaDeviceUtils
                 if (relativeFilePath.ShouldDeleteExtension())
                     continue;
                 string localFilePath  = Path.Join(baseLocalPath, relativeFilePath),
-                       deviceFilePath = Path.Join(baseDevicePath, relativeFilePath);
+                       deviceFilePath = Path.Join(baseDevicePath, relativeFilePath).Replace('\\', '/');
                 if (!localHashes.ContainsKey(localFilePath))
                     localHashes[localFilePath] = localFilePath.FileHash();
                 if (device.FileExists(deviceFilePath))

@@ -2,7 +2,7 @@
   "profiles": {
     "mzk": {
       "commandName": "Project",
-      "commandLineArgs": "--dryrun --copyto S10e \"/Internal storage/Music/Files/\""
+      "commandLineArgs": "--resort --copyto S10e \"/Internal storage/Music/Files/\""
     }
   }
 }

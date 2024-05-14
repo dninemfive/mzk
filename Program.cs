@@ -36,7 +36,7 @@ internal static class Program
             UpdatePlaylists();
             Constants.BasePath.DeleteEmptyFolders([.. Constants.IgnoreFolders]);
             if(deviceName is not null && devicePath is not null)
-                MediaDeviceUtils.MakeDirectoryStructureMatchOnDevice(Path.Join(Constants.BasePath, "Files"), deviceName, devicePath, true, true);
+                MediaDeviceUtils.MakeDirectoryStructureMatchOnDevice(Path.Join(Constants.BasePath, "Files"), deviceName, devicePath, DryRun, true);
         }
         finally
         {
