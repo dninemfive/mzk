@@ -10,7 +10,7 @@ internal static class Program
 {
     public static readonly bool DryRun = CommandLineArgs.GetFlag("dryrun", 'D');
     public static Dictionary<string, string> NewFileNames = new();
-    static void Main()
+    static async Task Main()
     {
         // M3U8Playlist playlist = M3U8Playlist.Read(Path.Join(Constants.BasePath, Constants.Playlists, "mkondoa.m3u8"))!;
         // playlist.ChangeRoot(Constants.BasePath, "../Music");
@@ -34,12 +34,11 @@ internal static class Program
         MzkLog.WriteLine($"mzk running in {(DryRun ? "dry run" : "live")} mode.");
         try
         {
-            // MediaDeviceUtils.PrintStuffAboutMediaDevicesWithNameAndPath(deviceName, devicePath);
             MoveSongsIn(Constants.BasePath);
             UpdatePlaylists();
             Constants.BasePath.DeleteEmptyFolders([.. Constants.IgnoreFolders]);
             if(deviceName is not null && devicePath is not null)
-                MediaDeviceUtils.MakeDirectoryStructureMatchOnDevice(Path.Join(Constants.BasePath, "Files"), deviceName, devicePath, DryRun, false);
+                await MediaDeviceUtils.MakeDirectoryStructureMatchOnDevice(Path.Join(Constants.BasePath, "Files"), deviceName, devicePath, DryRun, false);
         }
         finally
         {

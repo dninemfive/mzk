@@ -23,30 +23,30 @@ internal static class MediaDeviceUtils
             throw new PlatformNotSupportedException();
         return md.FriendlyName;
     }
-    public static IEnumerable<MediaDevice> ConnectedDevicesWithName(string deviceName)
+    public static IEnumerable<MediaDevice> AvailableDevicesWithName(string deviceName)
     {
         // suppresses CA1416
         if (!OperatingSystem.IsWindows() || !OperatingSystem.IsWindowsVersionAtLeast(7))
             throw new PlatformNotSupportedException();
         return MediaDevice.GetDevices().Where(x => x.SafeFriendlyName() == deviceName);
     }
-    public static void PrintStuffAboutMediaDevicesWithNameAndPath(string? deviceName, string? devicePath)
+    public static MediaDevice? ConnectToDeviceWithName(string deviceName)
     {
-        if (deviceName is not null && devicePath is not null && OperatingSystem.IsWindows() && OperatingSystem.IsWindowsVersionAtLeast(7))
+
+        MzkLog.Write($"Connecting to device `{deviceName}`...");
+        MediaDevice device;
+        try
         {
-            // to suppress CA1416, explicitly declare a getter function
-            IEnumerable<MediaDevice> mds = ConnectedDevicesWithName(deviceName);
-            MzkLog.WriteLine(mds.Select(SafeFriendlyName).ListNotation());
-            foreach (MediaDevice md in mds)
-            {
-                md.Connect();
-                MzkLog.WriteLine(md.PrettyPrint());
-                MzkLog.WriteLine(md.EnumerateDirectories(devicePath).ListNotation());
-                md.Disconnect();
-            }
-            foreach (MediaDevice md in mds)
-                md.Dispose();
+            device = AvailableDevicesWithName(deviceName).First();
+            device.Connect();
         }
+        catch (Exception e)
+        {
+            MzkLog.WriteLine($"{e.GetType().Name}: {e.Message}");
+            return null;
+        }
+        MzkLog.WriteLine($"Done!");
+        return device;
     }
     static void CopyFile(this MediaDevice device, string localPath, string devicePath, bool dryRun = true, bool overwrite = false)
     {
@@ -65,12 +65,13 @@ internal static class MediaDeviceUtils
         if(!dryRun)
             device.DeleteFile(devicePath);
     }
-    internal static string FileHash(this MediaDevice device, string path)
+    internal static string FileHash(this MediaDevice? device, string path)
     {
+        if (device is null)
+            return path.FileHash();
         using MemoryStream ms = new();
         device.DownloadFile(path, ms);
         string result = ms.FileHash();
-        // MzkLog.WriteLine($"{device}.FileHash({path}) -> {result}");
         return result;
     }
     static bool FolderIsEmpty(this MediaDevice device, string path)
@@ -99,20 +100,11 @@ internal static class MediaDeviceUtils
             foreach (string t in device.EnumerateFilesRecursive(s))
                 yield return t;
     }
-    internal static void MakeDirectoryStructureMatchOnDevice(string baseLocalPath, string deviceName, string baseDevicePath, bool dryRun = true, bool deleteUnmatchedFiles = false)
+    internal static async Task MakeDirectoryStructureMatchOnDevice(string baseLocalPath, string deviceName, string baseDevicePath, bool dryRun = true, bool deleteUnmatchedFiles = false)
     {
-        MzkLog.Write($"Connecting to device `{deviceName}`...");
-        MediaDevice device;
-        try
-        {
-            device = ConnectedDevicesWithName(deviceName).First();
-            device.Connect();
-        } catch(Exception e)
-        {
-            MzkLog.WriteLine($"{e.GetType().Name}: {e.Message}");
+        MediaDevice? device = ConnectToDeviceWithName(deviceName);
+        if (device is null)
             return;
-        }
-        MzkLog.WriteLine($"Done!");
         try
         {
             HashSet<string> localFiles = baseLocalPath.EnumerateFilesRecursive()
