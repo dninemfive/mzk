@@ -12,6 +12,9 @@ internal static class Program
     public static Dictionary<string, string> NewFileNames = new();
     static void Main()
     {
+        // M3U8Playlist playlist = M3U8Playlist.Read(Path.Join(Constants.BasePath, Constants.Playlists, "mkondoa.m3u8"))!;
+        // playlist.ChangeRoot(Constants.BasePath, "../Music");
+        // playlist.Write(Path.Join(Constants.BasePath, Constants.Playlists, "phone", "mkondoa.m3u8"));
         Console.OutputEncoding = System.Text.Encoding.Unicode;
         if (CommandLineArgs.GetFlag("resort")) 
             Constants.IgnoreFolders.RemoveAt(0);
@@ -36,7 +39,7 @@ internal static class Program
             UpdatePlaylists();
             Constants.BasePath.DeleteEmptyFolders([.. Constants.IgnoreFolders]);
             if(deviceName is not null && devicePath is not null)
-                MediaDeviceUtils.MakeDirectoryStructureMatchOnDevice(Path.Join(Constants.BasePath, "Files"), deviceName, devicePath, DryRun, true);
+                MediaDeviceUtils.MakeDirectoryStructureMatchOnDevice(Path.Join(Constants.BasePath, "Files"), deviceName, devicePath, DryRun, false);
         }
         finally
         {
