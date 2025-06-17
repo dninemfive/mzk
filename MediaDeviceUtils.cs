@@ -133,6 +133,7 @@ internal static class MediaDeviceUtils
                 {
                     continue;
                 }
+                Console.WriteLine(relativeFilePath);
                 device.CopyFile(localFilePath, deviceFilePath, dryRun, overwrite: true);
             }
             MzkLog.WriteLine($"Deleting empty folders...");

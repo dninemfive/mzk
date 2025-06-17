@@ -2,18 +2,20 @@
 using MediaDevices;
 
 namespace d9.mzk;
-public class DeviceAbstractionLayer(MediaDevice? device = null) : IDisposable
+public class RelativeFilesystemReference(MediaDevice? device = null, string basePath = "", char fileSeparator = '/') : IDisposable
 {
     public MediaDevice? Device { get; private set; } = device;
-    public static DeviceAbstractionLayer? FromName(string name)
+    public string BasePath { get; private set; } = basePath;
+    public char FileSeparator { get; private set; } = fileSeparator;
+    public static RelativeFilesystemReference? FromName(string name, string basePath)
     {
         MediaDevice? device = MediaDeviceUtils.ConnectToDeviceWithName(name);
         if (device is not null)
-            return new(device);
+            return new(device, basePath);
         return null;
     }
     public string FileHash(string filePath)
-        => Device?.FileHash(filePath) ?? filePath.FileHash();
+        => Device?.FileHash(Path.Join(BasePath, filePath)) ?? filePath.FileHash();
     public IEnumerable<string> EnumerateFilesRecursive(string basePath)
         => Device?.EnumerateFilesRecursive(basePath) ?? basePath.EnumerateFilesRecursive();
     public async Task<IReadOnlyDictionary<string, string>> FileHashCache(string basePath, Progress<string>? progress)

@@ -2,7 +2,7 @@
   "profiles": {
     "mzk": {
       "commandName": "Project",
-      "commandLineArgs": "--copyto S10e \"/Internal storage/Music/Files/\""
+      "commandLineArgs": "--copyto \"Galaxy S22\" \"/Internal storage/Music/Files/\""
     }
   }
 }
