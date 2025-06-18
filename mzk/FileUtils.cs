@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 namespace d9.mzk;
 internal static class FileUtils
 {
-    public static void DeleteIf(this string path, bool notDryRun)
+    public static void DeleteIf(this string path, bool delete)
     {
         MzkLog.Message(path, LogType.Delete);
-        if (notDryRun)
+        if (delete)
             File.Delete(path);
     }
     public static bool HasPlaylistExtension(this string filePath)

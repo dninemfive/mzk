@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <Reference Include="utl">
-      <HintPath>..\utl\bin\Release\net7.0\utl.dll</HintPath>
+      <HintPath>..\..\utl\utl\bin\Release\net8.0\utl.dll</HintPath>
     </Reference>
   </ItemGroup>
 

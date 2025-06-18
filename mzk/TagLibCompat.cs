@@ -57,7 +57,8 @@ internal static class TagUtils
     {
         string result = Path.Join(Constants.BasePath, Constants.Files, t.Artist().Trim().PathSafe());
         // https://stackoverflow.com/a/4123152
-        if (!t.Album.NullOrEmpty()) result = Path.Join(result, t.Album.PathSafe().Trim('.')); 
+        if (!t.Album.IsNullOrEmpty())
+            result = Path.Join(result, t.Album.PathSafe().Trim('.')); 
         return result;
     }
     static string NewFileName(this Tag t, string oldPath)
@@ -81,5 +82,5 @@ internal static class TagUtils
     public static string NewPath(this Tag t, string oldPath) 
         => Path.Join(t.NewDirectory(), t.NewFileName(oldPath));
     static string Artist(this Tag t) 
-        => Utils.Sieve((x) => !string.IsNullOrEmpty(x), "_", t.JoinedAlbumArtists, t.JoinedPerformers, t.JoinedComposers);
+        => new List<string>() { t.JoinedAlbumArtists, t.JoinedPerformers, t.JoinedComposers }.FirstOrDefault((x) => !string.IsNullOrEmpty(x), "_");
 }

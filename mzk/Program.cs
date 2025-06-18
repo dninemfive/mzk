@@ -44,39 +44,5 @@ internal static class Program
         {
             MzkLog.Dispose();
         }
-    }
-    public static void MoveSongsIn(string folder)
-    {            
-        foreach (string file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
-        {
-            if (file.ShouldBeIgnored())
-                continue;
-            if (file.ShouldDeleteExtension())
-            {
-                file.DeleteIf(!DryRun);
-            } 
-            else
-            {
-                TagUtils.MoveSong(file);
-            }
-        }
-    }        
-    static void UpdatePlaylists()
-    {
-        string playlistFolder = Path.Join(Constants.BasePath, Constants.Playlists);
-        foreach (string s in Directory.EnumerateFiles(playlistFolder))
-            UpdatePlaylist(s);
-    }
-    static void UpdatePlaylist(string filename)
-    {
-        if (!filename.HasPlaylistExtension())
-            return;
-        List<string> text = File.ReadLines(filename)
-                                .Select(x => NewFileNames.TryGetValue(x, out string? value) ? value : x)
-                                .ToList();
-        string toWrite = "";
-        foreach(string s in text)
-            toWrite += $"{s}\n";
-        File.WriteAllText(filename, toWrite);
-    }
+    }     
 }
